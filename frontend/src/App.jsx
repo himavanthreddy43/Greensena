@@ -1,9 +1,11 @@
-﻿import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { Users, ScanFace, LayoutDashboard } from 'lucide-react';
+import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { Users, ScanFace, LayoutDashboard, LogOut } from 'lucide-react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import RegisterPage from './pages/RegisterPage';
 import RecognizePage from './pages/RecognizePage';
 import DashboardPage from './pages/DashboardPage';
 import FamiliesPage from './pages/FamiliesPage';
+import LoginPage from './pages/LoginPage';
 import AIChatbot from './components/AIChatbot';
 
 function Home() {
@@ -65,6 +67,8 @@ function Home() {
 }
 
 function Navbar() {
+  const { user, signOut } = useAuth();
+
   return (
     <nav className="border-b border-zinc-200/50 bg-white/70 backdrop-blur-lg sticky top-0 z-40 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -74,40 +78,70 @@ function Navbar() {
           </div>
           <span className="font-extrabold text-2xl text-zinc-900 tracking-tight">Ration<span className="text-blue-600">App</span></span>
         </Link>
-        <div className="flex space-x-1 sm:space-x-2 bg-zinc-100/80 p-1.5 rounded-full border border-zinc-200/50">
-          <Link to="/register" className="px-5 py-2 rounded-full text-sm font-semibold text-zinc-600 hover:text-blue-600 hover:bg-white focus:bg-white focus:shadow-sm transition-all">Register</Link>
-          <Link to="/recognize" className="px-5 py-2 rounded-full text-sm font-semibold text-zinc-600 hover:text-green-600 hover:bg-white focus:bg-white focus:shadow-sm transition-all">Scan</Link>
-          <Link to="/families" className="px-5 py-2 rounded-full text-sm font-semibold text-zinc-600 hover:text-indigo-600 hover:bg-white focus:bg-white focus:shadow-sm transition-all">Directory</Link>
-          <Link to="/dashboard" className="px-5 py-2 rounded-full text-sm font-semibold text-zinc-600 hover:text-purple-600 hover:bg-white focus:bg-white focus:shadow-sm transition-all">Dashboard</Link>
-        </div>
+        
+        {user && (
+          <div className="flex items-center space-x-4">
+            <div className="flex space-x-1 sm:space-x-2 bg-zinc-100/80 p-1.5 rounded-full border border-zinc-200/50">
+              <Link to="/register" className="px-5 py-2 rounded-full text-sm font-semibold text-zinc-600 hover:text-blue-600 hover:bg-white focus:bg-white focus:shadow-sm transition-all">Register</Link>
+              <Link to="/recognize" className="px-5 py-2 rounded-full text-sm font-semibold text-zinc-600 hover:text-green-600 hover:bg-white focus:bg-white focus:shadow-sm transition-all">Scan</Link>
+              <Link to="/families" className="px-5 py-2 rounded-full text-sm font-semibold text-zinc-600 hover:text-indigo-600 hover:bg-white focus:bg-white focus:shadow-sm transition-all">Directory</Link>
+              <Link to="/dashboard" className="px-5 py-2 rounded-full text-sm font-semibold text-zinc-600 hover:text-purple-600 hover:bg-white focus:bg-white focus:shadow-sm transition-all">Dashboard</Link>
+            </div>
+            
+            <button 
+              onClick={() => signOut()} 
+              className="p-2 text-zinc-500 hover:text-red-500 transition-colors bg-white rounded-full border border-zinc-200 shadow-sm"
+              title="Log out"
+            >
+              <LogOut size={20} />
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   );
 }
 
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-zinc-500">Loading application...</div>;
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+  
+  return children;
+};
+
 export default function App() {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-[#f8fafc] text-zinc-900 font-sans relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute top-0 -left-64 w-[500px] h-[500px] bg-blue-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob pointer-events-none"></div>
-        <div className="absolute top-0 -right-64 w-[500px] h-[500px] bg-purple-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000 pointer-events-none"></div>
-        <div className="absolute -bottom-64 left-1/2 transform -translate-x-1/2 w-[800px] h-[400px] bg-indigo-400/10 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000 pointer-events-none"></div>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="min-h-screen bg-[#f8fafc] text-zinc-900 font-sans relative overflow-hidden">
+          {/* Background decorative elements */}
+          <div className="absolute top-0 -left-64 w-[500px] h-[500px] bg-blue-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob pointer-events-none"></div>
+          <div className="absolute top-0 -right-64 w-[500px] h-[500px] bg-purple-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000 pointer-events-none"></div>
+          <div className="absolute -bottom-64 left-1/2 transform -translate-x-1/2 w-[800px] h-[400px] bg-indigo-400/10 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000 pointer-events-none"></div>
 
-        <Navbar />
-        <main className="max-w-7xl mx-auto relative z-10">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/recognize" element={<RecognizePage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/families" element={<FamiliesPage />} />
-          </Routes>
-        </main>
+          <Navbar />
+          <main className="max-w-7xl mx-auto relative z-10">
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+              <Route path="/register" element={<ProtectedRoute><RegisterPage /></ProtectedRoute>} />
+              <Route path="/recognize" element={<ProtectedRoute><RecognizePage /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+              <Route path="/families" element={<ProtectedRoute><FamiliesPage /></ProtectedRoute>} />
+            </Routes>
+          </main>
 
-        {/* Global Chatbot */}
-        <AIChatbot />
-      </div>
-    </BrowserRouter>
+          {/* Global Chatbot */}
+          <AIChatbot />
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
