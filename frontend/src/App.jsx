@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+﻿import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { Users, ScanFace, LayoutDashboard } from 'lucide-react';
 import RegisterPage from './pages/RegisterPage';
 import RecognizePage from './pages/RecognizePage';
