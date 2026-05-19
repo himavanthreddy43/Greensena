@@ -3,6 +3,7 @@ import cv2
 import os
 import tempfile
 import numpy as np
+import gc
 from deepface import DeepFace
 
 logger = logging.getLogger(__name__)
@@ -91,6 +92,7 @@ def extract_embedding(image_path: str):
         try:
             logger.info("Trying OpenCV detector...")
 
+            gc.collect()
             objs = DeepFace.represent(
                 img_path=image_path,
                 model_name="ArcFace",
@@ -107,29 +109,7 @@ def extract_embedding(image_path: str):
             logger.warning(f"OpenCV detection failed: {e}")
 
         # ============================================
-        # STRATEGY 2 - MTCNN detector
-        # ============================================
-
-        try:
-            logger.info("Trying MTCNN detector...")
-
-            objs = DeepFace.represent(
-                img_path=image_path,
-                model_name="ArcFace",
-                detector_backend="mtcnn",
-                enforce_detection=True,
-                align=True
-            )
-
-            if objs and len(objs) > 0:
-                logger.info("Face detected using MTCNN.")
-                return objs[0]["embedding"]
-
-        except Exception as e:
-            logger.warning(f"MTCNN detection failed: {e}")
-
-        # ============================================
-        # STRATEGY 3 - Enhanced image retry
+        # STRATEGY 2 - Enhanced image retry
         # ============================================
 
         try:
@@ -138,6 +118,7 @@ def extract_embedding(image_path: str):
             enhanced_path = enhance_image(image_path)
 
             if enhanced_path:
+                gc.collect()
                 objs = DeepFace.represent(
                     img_path=enhanced_path,
                     model_name="ArcFace",
@@ -160,6 +141,7 @@ def extract_embedding(image_path: str):
         try:
             logger.info("Trying skip detector fallback...")
 
+            gc.collect()
             objs = DeepFace.represent(
                 img_path=image_path,
                 model_name="ArcFace",
