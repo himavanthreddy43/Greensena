@@ -95,7 +95,7 @@ def extract_embedding(image_path: str):
             gc.collect()
             objs = DeepFace.represent(
                 img_path=image_path,
-                model_name="ArcFace",
+                model_name="Facenet",
                 detector_backend="opencv",
                 enforce_detection=True,
                 align=True
@@ -121,7 +121,7 @@ def extract_embedding(image_path: str):
                 gc.collect()
                 objs = DeepFace.represent(
                     img_path=enhanced_path,
-                    model_name="ArcFace",
+                    model_name="Facenet",
                     detector_backend="opencv",
                     enforce_detection=True,
                     align=True
@@ -144,7 +144,7 @@ def extract_embedding(image_path: str):
             gc.collect()
             objs = DeepFace.represent(
                 img_path=image_path,
-                model_name="ArcFace",
+                model_name="Facenet",
                 detector_backend="skip",
                 enforce_detection=False,
                 align=False
