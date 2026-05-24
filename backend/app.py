@@ -68,9 +68,13 @@ def create_app():
         logger.error(f"Server Error: {error}")
         return jsonify({"error": "Internal Server Error", "message": "An unexpected error occurred"}), 500
     
-    with app.app_context():
-        db.create_all()
-        logger.info("Database initialized successfully.")
+    try:
+        with app.app_context():
+            db.create_all()
+            logger.info("Database initialized successfully.")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        logger.info("Continuing startup... Database connection will be retried on request.")
         
     return app
 
