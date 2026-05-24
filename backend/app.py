@@ -36,6 +36,13 @@ def create_app():
     
     # Configure Database — uses Supabase PostgreSQL from .env, falls back to SQLite for local dev
     database_url = os.environ.get('DATABASE_URL', 'sqlite:///ration.db')
+    
+    # Strip out pgbouncer parameter if present, as psycopg2 doesn't support it in DSN
+    if database_url and 'pgbouncer=true' in database_url:
+        database_url = database_url.replace('&pgbouncer=true', '').replace('?pgbouncer=true', '')
+        if database_url.endswith('?'):
+            database_url = database_url[:-1]
+            
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB for base64 image payloads
