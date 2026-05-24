@@ -25,13 +25,14 @@ def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
 def save_base64_image_permanent(base64_str: str, filename: str) -> str:
+    """Save a base64-encoded image to the uploads folder. Returns only the filename (not absolute path)."""
     if ',' in base64_str:
         base64_str = base64_str.split(',')[1]
     img_data = base64.b64decode(base64_str)
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     with open(filepath, 'wb') as f:
         f.write(img_data)
-    return filepath
+    return filename
 
 def save_base64_image_temp(base64_str: str) -> str:
     if ',' in base64_str:
@@ -72,6 +73,9 @@ def register_family():
     data = request.json
     if not data:
         return jsonify({"error": "Invalid request payload"}), 400
+    
+    # Track saved files so we can clean up on failure
+    saved_files = []
         
     try:
         new_family = Family(
@@ -109,16 +113,19 @@ def register_family():
             valid_face_found = False
             for idx, img_b64 in enumerate(images):
                 filename = f"{new_family.family_id}_{new_member.member_id}_{uuid.uuid4().hex}.jpg"
-                filepath = save_base64_image_permanent(img_b64, filename)
+                saved_filename = save_base64_image_permanent(img_b64, filename)
+                saved_files.append(saved_filename)
                 
-                embedding = face_utils.extract_embedding(filepath)
+                # Extract embedding using the full path on disk
+                full_path = os.path.join(UPLOAD_FOLDER, saved_filename)
+                embedding = face_utils.extract_embedding(full_path)
                 if embedding is not None:
                     valid_face_found = True
                     face_data = FaceData(
                         member_id=new_member.member_id,
                         family_id=new_family.family_id,
                         face_embedding_vector=json.dumps(embedding),
-                        face_image_path=filepath
+                        face_image_path=saved_filename  # Store relative filename only
                     )
                     db.session.add(face_data)
                 else:
@@ -134,16 +141,29 @@ def register_family():
         
     except ValueError as ve:
         db.session.rollback()
+        _cleanup_saved_files(saved_files)
         logger.warning(f"Validation error during registration: {ve}")
         return jsonify({"error": str(ve)}), 400
     except IntegrityError as ie:
         db.session.rollback()
+        _cleanup_saved_files(saved_files)
         logger.warning(f"Database integrity error: {ie}")
         return jsonify({"error": "A family with this ration card number is already registered. Please use a different ration card number."}), 400
     except Exception as e:
         db.session.rollback()
+        _cleanup_saved_files(saved_files)
         logger.error(f"Unexpected error during registration: {e}", exc_info=True)
         return jsonify({"error": f"Failed to register family: {str(e)}"}), 500
+
+def _cleanup_saved_files(filenames):
+    """Remove orphaned image files from disk after a failed registration."""
+    for fname in filenames:
+        fpath = os.path.join(UPLOAD_FOLDER, fname)
+        if os.path.exists(fpath):
+            try:
+                os.remove(fpath)
+            except OSError:
+                pass
 
 @api_bp.route('/recognize', methods=['POST'])
 def recognize():
@@ -282,7 +302,9 @@ def get_stats():
             received_status=True
         ).count()
         
-        today_start = datetime(current_year, current_month, now.day)
+        # Use IST for correct "today" boundary
+        now_ist = now.astimezone(IST)
+        today_start = datetime(now_ist.year, now_ist.month, now_ist.day, tzinfo=IST).astimezone(timezone.utc).replace(tzinfo=None)
         
         # Auto-cleanup old failed scans (older than today)
         old_logs = FailedScanLog.query.filter(FailedScanLog.timestamp < today_start).all()
@@ -450,7 +472,7 @@ def get_dashboard_details():
                 "id": log.log_id,
                 "reason": log.reason,
                 "time": log.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                "image_url": f"http://localhost:5000/api/uploads/{log.image_path}" if log.image_path else None
+                "image_url": f"/api/uploads/{log.image_path}" if log.image_path else None
             } for log in logs])
             
         return jsonify({"error": "Invalid type"}), 400
@@ -467,7 +489,7 @@ def get_families():
         for family in families:
             members_data = []
             for member in family.members:
-                image_data = [{"face_id": face.face_id, "url": f"http://localhost:5000/api/uploads/{os.path.basename(face.face_image_path)}"} for face in member.faces]
+                image_data = [{"face_id": face.face_id, "url": f"/api/uploads/{face.face_image_path}"} for face in member.faces]
                 members_data.append({
                     "member_id": member.member_id,
                     "name": member.member_name,
@@ -522,9 +544,10 @@ def delete_family(family_id):
         # Manually remove face images associated with this family from the uploads folder
         for member in family.members:
             for face in member.faces:
-                if os.path.exists(face.face_image_path):
+                face_abs_path = os.path.join(UPLOAD_FOLDER, face.face_image_path)
+                if os.path.exists(face_abs_path):
                     try:
-                        os.remove(face.face_image_path)
+                        os.remove(face_abs_path)
                     except OSError:
                         pass
                         
@@ -562,9 +585,10 @@ def update_family_member(member_id):
 def delete_face(face_id):
     try:
         face = FaceData.query.get_or_404(face_id)
-        if os.path.exists(face.face_image_path):
+        face_abs_path = os.path.join(UPLOAD_FOLDER, face.face_image_path)
+        if os.path.exists(face_abs_path):
             try:
-                os.remove(face.face_image_path)
+                os.remove(face_abs_path)
             except OSError:
                 pass
         db.session.delete(face)
@@ -584,9 +608,10 @@ def delete_family_member(member_id):
         
         # Remove member's face images
         for face in member.faces:
-            if os.path.exists(face.face_image_path):
+            face_abs_path = os.path.join(UPLOAD_FOLDER, face.face_image_path)
+            if os.path.exists(face_abs_path):
                 try:
-                    os.remove(face.face_image_path)
+                    os.remove(face_abs_path)
                 except OSError:
                     pass
                     
@@ -631,16 +656,17 @@ def add_family_member(family_id):
         valid_face_found = False
         for idx, img_b64 in enumerate(images):
             filename = f"{family.family_id}_{new_member.member_id}_{uuid.uuid4().hex}.jpg"
-            filepath = save_base64_image_permanent(img_b64, filename)
+            saved_filename = save_base64_image_permanent(img_b64, filename)
             
-            embedding = face_utils.extract_embedding(filepath)
+            full_path = os.path.join(UPLOAD_FOLDER, saved_filename)
+            embedding = face_utils.extract_embedding(full_path)
             if embedding is not None:
                 valid_face_found = True
                 face_data = FaceData(
                     member_id=new_member.member_id,
                     family_id=family.family_id,
                     face_embedding_vector=json.dumps(embedding),
-                    face_image_path=filepath
+                    face_image_path=saved_filename  # Store relative filename only
                 )
                 db.session.add(face_data)
             else:
@@ -686,21 +712,21 @@ def add_member_face(member_id):
     try:
         img_b64 = data['image']
         filename = f"{member.family_id}_{member.member_id}_{uuid.uuid4().hex[:8]}.jpg"
-        filepath = os.path.join(UPLOAD_FOLDER, filename)
         
-        save_base64_image_permanent(img_b64, filename)
+        saved_filename = save_base64_image_permanent(img_b64, filename)
+        full_path = os.path.join(UPLOAD_FOLDER, saved_filename)
         
-        embedding = face_utils.extract_embedding(filepath)
+        embedding = face_utils.extract_embedding(full_path)
         if embedding is None:
-            if os.path.exists(filepath):
-                os.remove(filepath)
+            if os.path.exists(full_path):
+                os.remove(full_path)
             return jsonify({"error": "No face detected in the image"}), 400
             
         face_data = FaceData(
             member_id=member.member_id,
             family_id=member.family_id,
             face_embedding_vector=json.dumps(embedding),
-            face_image_path=filepath
+            face_image_path=saved_filename  # Store relative filename only
         )
         db.session.add(face_data)
         db.session.commit()
@@ -710,7 +736,7 @@ def add_member_face(member_id):
             "message": "Face added successfully",
             "face": {
                 "face_id": face_data.face_id,
-                "url": f"http://localhost:5000/api/uploads/{filename}"
+                "url": f"/api/uploads/{saved_filename}"
             }
         }), 201
         

@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
@@ -27,7 +27,7 @@ class Family(db.Model):
     default_face_member = db.Column(db.Integer, db.ForeignKey('family_members.member_id', ondelete='SET NULL'), nullable=True)
     
     family_members_count = db.Column(db.Integer, default=1)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     members = db.relationship('FamilyMember', backref='family', lazy=True, foreign_keys="[FamilyMember.family_id]", cascade='all, delete-orphan')
@@ -44,7 +44,7 @@ class FamilyMember(db.Model):
     age = db.Column(db.Integer)
     relationship = db.Column(db.String(50))
     is_default_member = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     faces = db.relationship('FaceData', backref='member_ref', lazy=True, cascade='all, delete-orphan')
@@ -57,7 +57,7 @@ class FaceData(db.Model):
     family_id = db.Column(db.Integer, db.ForeignKey('families.family_id', ondelete='CASCADE'), nullable=False)
     face_embedding_vector = db.Column(db.Text, nullable=False)  # Stored as JSON string or Base64 string
     face_image_path = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 class MonthlyRation(db.Model):
     __tablename__ = 'monthly_ration'
@@ -82,4 +82,4 @@ class FailedScanLog(db.Model):
     log_id = db.Column(db.Integer, primary_key=True)
     image_path = db.Column(db.String(255), nullable=True)
     reason = db.Column(db.String(255))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

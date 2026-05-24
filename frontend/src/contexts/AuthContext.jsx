@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext({});
 
@@ -9,37 +8,44 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // Mock check for existing session in localStorage
+    const savedUser = localStorage.getItem('mock_user');
+    if (savedUser) {
+      const parsedUser = JSON.parse(savedUser);
+      setSession({ user: parsedUser });
+      setUser(parsedUser);
+    }
+    setLoading(false);
   }, []);
 
   const sendOtp = async (phone) => {
-    return supabase.auth.signInWithOtp({ phone });
+    // Mock OTP send - always succeed
+    return { error: null };
   };
 
   const verifyOtp = async (phone, token) => {
-    return supabase.auth.verifyOtp({ phone, token, type: 'sms' });
+    // Mock verify OTP - accept any 6 digit token
+    const mockUser = { id: '1', phone: phone };
+    localStorage.setItem('mock_user', JSON.stringify(mockUser));
+    setSession({ user: mockUser });
+    setUser(mockUser);
+    return { error: null };
   };
 
   const signInWithGoogle = async () => {
-    return supabase.auth.signInWithOAuth({ provider: 'google' });
+    // Mock Google sign in
+    const mockUser = { id: '1', name: 'Test User', email: 'test@example.com' };
+    localStorage.setItem('mock_user', JSON.stringify(mockUser));
+    setSession({ user: mockUser });
+    setUser(mockUser);
+    return { error: null };
   };
 
   const signOut = async () => {
-    return supabase.auth.signOut();
+    localStorage.removeItem('mock_user');
+    setSession(null);
+    setUser(null);
+    return { error: null };
   };
 
   const value = {

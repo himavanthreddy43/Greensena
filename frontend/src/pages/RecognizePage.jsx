@@ -65,7 +65,7 @@ export default function RecognizePage() {
 
                             {/* Scanner Overlay UI */}
                             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                                <div className={`w-3/4 h-3/4 border-2 rounded-[2rem] transition-all duration-500 \${
+                                <div className={`w-3/4 h-3/4 border-2 rounded-[2rem] transition-all duration-500 ${
                                     status === 'scanning' ? 'border-blue-400 scale-105 shadow-[0_0_40px_rgba(96,165,250,0.5)]' :
                                     status === 'success' ? 'border-emerald-400 bg-emerald-400/20' :
                                     status === 'failed' ? 'border-rose-400 bg-rose-400/20' :
@@ -77,7 +77,7 @@ export default function RecognizePage() {
                                 <div className="absolute inset-0 bg-blue-900/40 backdrop-blur-md flex items-center justify-center animate-in fade-in duration-300">
                                     <div className="bg-white/90 backdrop-blur-sm px-8 py-4 rounded-2xl flex flex-col items-center space-y-3 text-blue-900 font-bold shadow-2xl transform hover:scale-105 transition-transform">
                                         <Loader2 className="animate-spin text-blue-600" size={32} />
-                                        <span>Analyzing Face Biomtrics...</span>
+                                        <span>Analyzing Face Biometrics...</span>
                                     </div>
                                 </div>
                             )}

@@ -2,13 +2,16 @@ import sys
 import os
 
 # Set UTF-8 encoding for standard output and standard error to prevent DeepFace logging crashes on Windows
-if sys.stdout.encoding.lower() != 'utf-8':
-    sys.stdout.reconfigure(encoding='utf-8')
-if sys.stderr.encoding.lower() != 'utf-8':
-    sys.stderr.reconfigure(encoding='utf-8')
+try:
+    if hasattr(sys.stdout, 'reconfigure') and sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
+        sys.stdout.reconfigure(encoding='utf-8')
+    if hasattr(sys.stderr, 'reconfigure') and sys.stderr.encoding and sys.stderr.encoding.lower() != 'utf-8':
+        sys.stderr.reconfigure(encoding='utf-8')
+except Exception:
+    pass
 
 import logging
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 from models import db
@@ -22,7 +25,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
     # Allow CORS for all domains on API routes to ensure frontend compatibility
     CORS(app, resources={r"/api/*": {"origins": "*"}})
     
@@ -30,14 +33,19 @@ def create_app():
     database_url = os.environ.get('DATABASE_URL', 'sqlite:///ration.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB for base64 image payloads
     
     db.init_app(app)
     app.register_blueprint(api_bp, url_prefix='/api')
     
-    # Root health check route
-    @app.route('/')
-    def home():
-        return jsonify({"status": "ok", "message": "Smart Ration Backend is running"}), 200
+    # Serve React App
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve(path):
+        if path != "" and os.path.exists(app.static_folder + '/' + path):
+            return send_from_directory(app.static_folder, path)
+        else:
+            return send_from_directory(app.static_folder, 'index.html')
     
     # Global Error Handlers
     @app.errorhandler(400)
