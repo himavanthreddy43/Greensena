@@ -1,8 +1,10 @@
 import sys
 import os
 
-# Suppress TensorFlow CUDA/GPU warnings (must be set before TF import)
-os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', '2')
+# Completely disable GPU/CUDA to prevent XLA/StreamExecutor factory registration crashes
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+# Suppress TensorFlow CUDA/GPU logs (must be set before TF import)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # Set UTF-8 encoding for standard output and standard error to prevent DeepFace logging crashes on Windows
 try:

@@ -4,7 +4,6 @@ import os
 import tempfile
 import numpy as np
 import gc
-from deepface import DeepFace
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +69,8 @@ def extract_embedding(image_path: str):
     Extract face embedding using multiple fallback strategies.
     Passes file paths (not numpy arrays) to DeepFace for reliable detection.
     """
+    # Lazy-load DeepFace to prevent boot-time memory spikes and port binding timeouts
+    from deepface import DeepFace
 
     logger.info(f"Starting face extraction for: {image_path}")
 
