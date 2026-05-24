@@ -5,9 +5,11 @@ services:
     region: singapore
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --preload
     envVars:
       - key: DATABASE_URL
         sync: false  # Set manually in Render dashboard
       - key: PYTHON_VERSION
         value: 3.10.13
+      - key: TF_CPP_MIN_LOG_LEVEL
+        value: "2"

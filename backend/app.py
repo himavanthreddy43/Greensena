@@ -1,6 +1,9 @@
 import sys
 import os
 
+# Suppress TensorFlow CUDA/GPU warnings (must be set before TF import)
+os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', '2')
+
 # Set UTF-8 encoding for standard output and standard error to prevent DeepFace logging crashes on Windows
 try:
     if hasattr(sys.stdout, 'reconfigure') and sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
