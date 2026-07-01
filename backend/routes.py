@@ -28,6 +28,7 @@ def save_base64_image_permanent(base64_str: str, filename: str) -> str:
     """Save a base64-encoded image to the uploads folder. Returns only the filename (not absolute path)."""
     if ',' in base64_str:
         base64_str = base64_str.split(',')[1]
+    base64_str += "=" * ((4 - len(base64_str) % 4) % 4)
     img_data = base64.b64decode(base64_str)
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     with open(filepath, 'wb') as f:
@@ -37,6 +38,7 @@ def save_base64_image_permanent(base64_str: str, filename: str) -> str:
 def save_base64_image_temp(base64_str: str) -> str:
     if ',' in base64_str:
         base64_str = base64_str.split(',')[1]
+    base64_str += "=" * ((4 - len(base64_str) % 4) % 4)
     img_data = base64.b64decode(base64_str)
     fd, temp_path = tempfile.mkstemp(suffix='.jpg')
     with os.fdopen(fd, 'wb') as f:

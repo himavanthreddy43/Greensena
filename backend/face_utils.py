@@ -135,31 +135,6 @@ def extract_embedding(image_path: str):
         except Exception as e:
             logger.warning(f"Enhanced detection failed: {e}")
 
-        # ============================================
-        # STRATEGY 4 - Last resort (skip detector)
-        # ============================================
-
-        try:
-            logger.info("Trying skip detector fallback...")
-
-            gc.collect()
-            objs = DeepFace.represent(
-                img_path=image_path,
-                model_name="Facenet",
-                detector_backend="skip",
-                enforce_detection=False,
-                align=False
-            )
-
-            if objs and len(objs) > 0:
-                logger.warning(
-                    "Embedding extracted with enforce_detection=False"
-                )
-                return objs[0]["embedding"]
-
-        except Exception as e:
-            logger.error(f"Final fallback failed: {e}")
-
         logger.error("All extraction strategies failed.")
         return None
 

@@ -1,12 +1,17 @@
 import Webcam from 'react-webcam';
 import axios from 'axios';
-import { ScanFace, Check, XCircle, Search, ArrowRight, Loader2, PackageCheck, Package } from 'lucide-react';
+import { ScanFace, Check, XCircle, Search, ArrowRight, Loader2, PackageCheck, Package, RefreshCcw } from 'lucide-react';
 import { useState, useRef, useCallback } from 'react';
 
 export default function RecognizePage() {
     const [status, setStatus] = useState('idle'); // idle, scanning, success, failed
     const [familyDetails, setFamilyDetails] = useState(null);
+    const [facingMode, setFacingMode] = useState("user");
     const webcamRef = useRef(null);
+
+    const toggleCamera = () => {
+        setFacingMode(prev => prev === "user" ? "environment" : "user");
+    };
 
     const scanFace = async () => {
         const imageSrc = webcamRef.current.getScreenshot();
@@ -50,18 +55,25 @@ export default function RecognizePage() {
                         </div>
 
                         <div className="relative rounded-3xl overflow-hidden bg-black aspect-[3/4] sm:aspect-square lg:aspect-[3/4] flex items-center justify-center border-4 border-white shadow-2xl group flex-1">
-                            <Webcam
-                                audio={false}
-                                ref={webcamRef}
-                                screenshotFormat="image/jpeg"
-                                videoConstraints={{
-                                    width: 1280,
-                                    height: 720,
-                                    facingMode: "user"
-                                }}
-                                onUserMediaError={() => alert("Camera access denied or hardware error. Please check your browser permissions.")}
-                                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                            />
+                                <Webcam
+                                    audio={false}
+                                    ref={webcamRef}
+                                    screenshotFormat="image/jpeg"
+                                    videoConstraints={{
+                                        width: 640,
+                                        height: 480,
+                                        facingMode: facingMode
+                                    }}
+                                    onUserMediaError={() => alert("Camera access denied or hardware error. Please check your browser permissions.")}
+                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                                />
+                                <button
+                                    onClick={toggleCamera}
+                                    className="absolute top-4 right-4 z-20 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white p-2 rounded-full transition-all"
+                                    title="Switch Camera"
+                                >
+                                    <RefreshCcw size={20} />
+                                </button>
 
                             {/* Scanner Overlay UI */}
                             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">

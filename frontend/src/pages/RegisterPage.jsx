@@ -1,6 +1,6 @@
 import Webcam from 'react-webcam';
 import axios from 'axios';
-import { Camera, UserPlus, CheckCircle2, User, HelpCircle, X, Loader2, ImagePlus } from 'lucide-react';
+import { Camera, UserPlus, CheckCircle2, User, HelpCircle, X, Loader2, ImagePlus, RefreshCcw } from 'lucide-react';
 import { useState, useRef, useCallback } from 'react';
 
 export default function RegisterPage() {
@@ -22,6 +22,11 @@ export default function RegisterPage() {
         relationship: 'Self'
     });
     const [capturedImages, setCapturedImages] = useState([]);
+    const [facingMode, setFacingMode] = useState("user");
+
+    const toggleCamera = () => {
+        setFacingMode(prev => prev === "user" ? "environment" : "user");
+    };
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const webcamRef = useRef(null);
@@ -222,14 +227,21 @@ export default function RegisterPage() {
                                             ref={webcamRef}
                                             screenshotFormat="image/jpeg"
                                             videoConstraints={{
-                                                width: 1280,
-                                                height: 720,
-                                                facingMode: "user"
+                                                width: 640,
+                                                height: 480,
+                                                facingMode: facingMode
                                             }}
                                             onUserMediaError={() => alert("Camera access denied or hardware error. Please check your browser permissions.")}
                                             className="w-full h-full object-cover"
                                         />
-                                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={toggleCamera}
+                                            className="absolute top-4 right-4 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white p-2 rounded-full transition-all"
+                                            title="Switch Camera"
+                                        >
+                                            <RefreshCcw size={20} />
+                                        </button>
+                                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                             <button
                                                 onClick={capture}
                                                 className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-6 py-2 rounded-full flex items-center space-x-2 font-medium transition-all"

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
-import { Users, Search, Edit2, Trash2, ChevronDown, ChevronUp, UserX, UserMinus, ShieldAlert, Check, X, Loader2, UserPlus, Camera, ImagePlus } from 'lucide-react';
+import { Users, Search, Edit2, Trash2, ChevronDown, ChevronUp, UserX, UserMinus, ShieldAlert, Check, X, Loader2, UserPlus, Camera, ImagePlus, RefreshCcw } from 'lucide-react';
 import Webcam from 'react-webcam';
 export default function FamiliesPage() {
     const [families, setFamilies] = useState([]);
@@ -22,8 +22,13 @@ export default function FamiliesPage() {
     const [isSavingMember, setIsSavingMember] = useState(false);
     const [isAddingFace, setIsAddingFace] = useState(false);
     const [isSavingFace, setIsSavingFace] = useState(false);
+    const [facingMode, setFacingMode] = useState("user");
     const memberWebcamRef = useRef(null);
     const webcamRef = useRef(null);
+
+    const toggleCamera = () => {
+        setFacingMode(prev => prev === "user" ? "environment" : "user");
+    };
 
     const handleEditMemberClick = () => {
         setEditMemberForm({
@@ -419,10 +424,17 @@ export default function FamiliesPage() {
                                                         audio={false}
                                                         ref={webcamRef}
                                                         screenshotFormat="image/jpeg"
-                                                        videoConstraints={{ facingMode: "user" }}
+                                                        videoConstraints={{ width: 640, height: 480, facingMode: facingMode }}
                                                         className="w-full h-full object-cover"
                                                     />
-                                                    <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={toggleCamera}
+                                                        className="absolute top-2 right-2 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white p-2 rounded-full transition-all"
+                                                        title="Switch Camera"
+                                                    >
+                                                        <RefreshCcw size={16} />
+                                                    </button>
+                                                    <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex justify-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                                         <button onClick={capture} className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-1.5 rounded-full flex items-center space-x-1 text-sm font-medium">
                                                             <Camera size={14} /><span>Snap</span>
                                                         </button>
@@ -544,10 +556,23 @@ export default function FamiliesPage() {
                                 )}
                             </div>
 
-                            {isAddingFace && (
-                                <div className="mb-6 bg-zinc-900 rounded-2xl overflow-hidden relative shadow-lg">
-                                    <Webcam audio={false} ref={memberWebcamRef} screenshotFormat="image/jpeg" className="w-full" />
-                                    <div className="absolute bottom-4 inset-x-0 flex justify-center gap-3">
+                                {isAddingFace && (
+                                    <div className="mb-6 bg-zinc-900 rounded-2xl overflow-hidden relative shadow-lg">
+                                        <Webcam 
+                                            audio={false} 
+                                            ref={memberWebcamRef} 
+                                            screenshotFormat="image/jpeg" 
+                                            videoConstraints={{ width: 640, height: 480, facingMode: facingMode }}
+                                            className="w-full" 
+                                        />
+                                        <button
+                                            onClick={toggleCamera}
+                                            className="absolute top-2 right-2 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white p-2 rounded-full transition-all"
+                                            title="Switch Camera"
+                                        >
+                                            <RefreshCcw size={16} />
+                                        </button>
+                                        <div className="absolute bottom-4 inset-x-0 flex justify-center gap-3">
                                         <button onClick={() => setIsAddingFace(false)} className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-full font-bold text-sm transition-colors">Cancel</button>
                                         <button onClick={handleCaptureNewFace} disabled={isSavingFace} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-full font-bold text-sm flex items-center shadow-lg transition-colors disabled:opacity-50">
                                             {isSavingFace ? <Loader2 size={16} className="animate-spin mr-1.5" /> : <Camera size={16} className="mr-1.5" />} Capture & Save

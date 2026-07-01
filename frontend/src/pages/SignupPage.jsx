@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserPlus, KeyRound, Phone, AlertCircle, ArrowRight, Chrome } from 'lucide-react';
+import { UserPlus, KeyRound, Phone, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function SignupPage() {
   const [phone, setPhone] = useState('');
@@ -9,7 +9,7 @@ export default function SignupPage() {
   const [step, setStep] = useState(1); // 1 = phone, 2 = otp
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { sendOtp, verifyOtp, signInWithGoogle } = useAuth();
+  const { sendOtp, verifyOtp } = useAuth();
   const navigate = useNavigate();
 
   const handleSendOtp = async (e) => {
@@ -51,14 +51,6 @@ export default function SignupPage() {
       setError(error.message);
     } else {
       navigate('/dashboard'); // Go to dashboard on success
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setError('');
-    const { error } = await signInWithGoogle();
-    if (error) {
-      setError(error.message);
     }
   };
 
@@ -142,24 +134,7 @@ export default function SignupPage() {
           </form>
         )}
 
-        <div className="mt-8">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-zinc-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-zinc-500">Or continue with</span>
-            </div>
-          </div>
-          <button 
-            onClick={handleGoogleSignIn}
-            type="button"
-            className="mt-6 w-full flex items-center justify-center space-x-3 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 py-3 rounded-xl font-medium shadow-sm transition-all"
-          >
-            <Chrome size={20} className="text-blue-500" />
-            <span>Google</span>
-          </button>
-        </div>
+
 
         <div className="mt-8 text-center text-sm text-zinc-600">
           Already have an account?{' '}
