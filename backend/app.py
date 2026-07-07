@@ -31,11 +31,11 @@ logger = logging.getLogger(__name__)
 
 def create_app():
     app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
-    # Allow CORS strictly for Vercel frontend
-    CORS(app, resources={r"/api/*": {
+    # Allow CORS strictly for Vercel frontend on all routes to prevent header stripping on errors
+    CORS(app, resources={r"/*": {
         "origins": ["https://ration-authontication.vercel.app"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
+        "allow_headers": "*",
         "supports_credentials": True
     }})
     
@@ -71,6 +71,10 @@ def create_app():
             "status": "success",
             "message": "Backend Running"
         })
+        
+    @app.route('/test-500')
+    def test_500():
+        raise Exception("Test 500")
     
     # Global Error Handlers
     @app.errorhandler(400)
