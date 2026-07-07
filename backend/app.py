@@ -31,8 +31,13 @@ logger = logging.getLogger(__name__)
 
 def create_app():
     app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
-    # Allow CORS for all domains on API routes to ensure frontend compatibility
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    # Allow CORS strictly for Vercel frontend
+    CORS(app, resources={r"/api/*": {
+        "origins": ["https://ration-authontication.vercel.app"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }})
     
     # Configure Database — uses Supabase PostgreSQL from .env, falls back to SQLite for local dev
     database_url = os.environ.get('DATABASE_URL', 'sqlite:///ration.db')
@@ -59,14 +64,13 @@ def create_app():
     db.init_app(app)
     app.register_blueprint(api_bp, url_prefix='/api')
     
-    # Serve React App
-    @app.route('/', defaults={'path': ''})
-    @app.route('/<path:path>')
-    def serve(path):
-        if path != "" and os.path.exists(app.static_folder + '/' + path):
-            return send_from_directory(app.static_folder, path)
-        else:
-            return send_from_directory(app.static_folder, 'index.html')
+    # Health Check Endpoint
+    @app.route('/')
+    def health_check():
+        return jsonify({
+            "status": "success",
+            "message": "Backend Running"
+        })
     
     # Global Error Handlers
     @app.errorhandler(400)
