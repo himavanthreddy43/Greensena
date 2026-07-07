@@ -85,6 +85,16 @@ def extract_embedding(image_path: str):
             return None
 
         logger.info(f"Image loaded successfully. Shape: {img.shape}")
+        
+        # Downscale image to max 800x800 to prevent OOM crashes on Render's 512MB RAM
+        max_dim = 800
+        h, w = img.shape[:2]
+        if h > max_dim or w > max_dim:
+            scale = max_dim / max(h, w)
+            img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+            # Overwrite the original file with the downscaled version so DeepFace uses it
+            cv2.imwrite(image_path, img)
+            logger.info(f"Image resized to prevent OOM. New Shape: {img.shape}")
 
         # ============================================
         # STRATEGY 1 - OpenCV detector
