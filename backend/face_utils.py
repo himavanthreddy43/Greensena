@@ -6,9 +6,6 @@ import numpy as np
 import gc
 import psutil
 
-# Globally load DeepFace
-from deepface import DeepFace
-
 logger = logging.getLogger(__name__)
 
 def log_memory(step_name):
@@ -17,14 +14,6 @@ def log_memory(step_name):
     # RSS (Resident Set Size) in MB
     rss_mb = mem_info.rss / (1024 * 1024)
     logger.info(f"MEMORY [{step_name}]: {rss_mb:.2f} MB")
-
-# Pre-load DeepFace model globally to avoid boot-time spikes and repeated loading
-logger.info("Initializing DeepFace globally...")
-try:
-    DeepFace.build_model("Facenet")
-    logger.info("DeepFace initialized successfully.")
-except Exception as e:
-    logger.error(f"Failed to pre-load DeepFace: {e}")
 
 # ============================================
 # IMAGE ENHANCEMENT
@@ -89,6 +78,11 @@ def extract_embedding(image_path: str):
     Passes file paths (not numpy arrays) to DeepFace for reliable detection.
     """
     logger.info(f"Starting face extraction for: {image_path}")
+    log_memory("Before DeepFace Import")
+    
+    # Lazy-load DeepFace specifically inside the background thread so the main web worker never loads TensorFlow
+    from deepface import DeepFace
+    
     log_memory("Before Image Decoding")
 
     enhanced_path = None

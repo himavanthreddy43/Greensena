@@ -6,8 +6,9 @@ import uuid
 import tempfile
 import logging
 import traceback
+import threading
 from datetime import datetime, timezone, timedelta
-from flask import Blueprint, jsonify, request, send_from_directory
+from flask import Blueprint, jsonify, request, send_from_directory, current_app
 from sqlalchemy.exc import IntegrityError
 from models import db, Family, FamilyMember, FaceData, MonthlyRation, RationShop, FailedScanLog
 import face_utils
@@ -21,6 +22,44 @@ IST = timezone(timedelta(hours=5, minutes=30))
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def process_faces_background(app, family_id, images_to_process):
+    """
+    Background worker to extract faces so the web worker is not blocked.
+    """
+    with app.app_context():
+        try:
+            log_memory("Background Thread Start")
+            for item in images_to_process:
+                member_id = item['member_id']
+                saved_filename = item['saved_filename']
+                member_name = item['member_name']
+                
+                full_path = os.path.join(UPLOAD_FOLDER, saved_filename)
+                
+                try:
+                    # TensorFlow will ONLY be imported here lazily
+                    embedding = face_utils.extract_embedding(full_path)
+                    if embedding is not None:
+                        face_data = FaceData(
+                            member_id=member_id,
+                            family_id=family_id,
+                            face_embedding_vector=json.dumps(embedding),
+                            face_image_path=saved_filename
+                        )
+                        db.session.add(face_data)
+                        db.session.commit()
+                        logger.info(f"Successfully processed and saved face for {member_name}")
+                    else:
+                        logger.warning(f"No valid face detected for {member_name} in {saved_filename}")
+                except Exception as e:
+                    logger.error(f"Failed to process face for {member_name}: {e}")
+                    # Continue processing the remaining images even if one fails
+                    
+            face_utils.refresh_face_cache()
+            log_memory("Background Thread Complete")
+        except Exception as e:
+            logger.error(f"Critical error in face processing background thread: {e}", exc_info=True)
 
 @api_bp.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -109,6 +148,7 @@ def register_family():
         
         log_memory("After Family Flush")
         
+        images_to_process = []
         for member in data.get('members', []):
             new_member = FamilyMember(
                 family_id=new_family.family_id,
@@ -130,13 +170,12 @@ def register_family():
             if not images:
                 raise ValueError(f"At least one image required for {member.get('name')}")
             
-            valid_face_found = False
             for idx, img_identifier in enumerate(images):
                 # If it's a pre-uploaded filename from /api/upload_image, it will start with temp_ or just be a filename.
                 # If it's still somehow base64 (legacy), we save it.
                 if img_identifier.startswith('data:image/') or len(img_identifier) > 500:
                     filename = f"{new_family.family_id}_{new_member.member_id}_{uuid.uuid4().hex}.jpg"
-                    saved_filename = save_base64_image_permanent(img_identifier, filename)
+                    saved_filename = face_utils.save_base64_image_permanent(img_identifier, filename)
                 else:
                     # It's an already uploaded filename
                     saved_filename = img_identifier
@@ -154,30 +193,24 @@ def register_family():
                             
                 saved_files.append(saved_filename)
                 
-                # Extract embedding using the full path on disk
-                full_path = os.path.join(UPLOAD_FOLDER, saved_filename)
-                embedding = face_utils.extract_embedding(full_path)
-                if embedding is not None:
-                    valid_face_found = True
-                    face_data = FaceData(
-                        member_id=new_member.member_id,
-                        family_id=new_family.family_id,
-                        face_embedding_vector=json.dumps(embedding),
-                        face_image_path=saved_filename  # Store relative filename only
-                    )
-                    db.session.add(face_data)
-                else:
-                    logger.warning(f"No face detected in image {idx+1} for member {new_member.member_name}")
-                    
-            if not valid_face_found:
-                raise ValueError(f"No valid faces detected in any of the provided images for {member.get('name')}")
+                images_to_process.append({
+                    'member_id': new_member.member_id,
+                    'saved_filename': saved_filename,
+                    'member_name': new_member.member_name
+                })
                 
         db.session.commit()
         log_memory("After Database Commit")
-        refresh_face_cache()
+        
+        # Start background thread to process images out-of-band
+        app = current_app._get_current_object()
+        thread = threading.Thread(target=process_faces_background, args=(app, new_family.family_id, images_to_process))
+        thread.daemon = True
+        thread.start()
+        
         log_memory("Register Family Complete")
         logger.info(f"Family registered successfully with ID: {new_family.family_id}")
-        return jsonify({"message": "Family registered successfully", "id": new_family.family_id}), 201
+        return jsonify({"message": "Family registered successfully. Faces are processing in the background.", "id": new_family.family_id}), 201
         
     except ValueError as ve:
         db.session.rollback()
