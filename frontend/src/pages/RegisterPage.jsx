@@ -31,10 +31,30 @@ export default function RegisterPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const webcamRef = useRef(null);
 
-    const capture = useCallback(() => {
+    const capture = useCallback(async () => {
         const imageSrc = webcamRef.current.getScreenshot();
         if (imageSrc) {
-            setCapturedImages(prev => [...prev, imageSrc]);
+            try {
+                // Convert base64 to Blob
+                const res = await fetch(imageSrc);
+                const blob = await res.blob();
+                
+                // Upload to backend immediately
+                const formData = new FormData();
+                formData.append('file', blob, 'webcam.jpg');
+                
+                const uploadRes = await axios.post('/api/upload_image', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                
+                setCapturedImages(prev => [...prev, {
+                    serverFilename: uploadRes.data.filename,
+                    previewUrl: imageSrc
+                }]);
+            } catch (error) {
+                console.error("Failed to upload image:", error);
+                alert("Failed to upload image. Please check your connection.");
+            }
         }
     }, [webcamRef]);
 
@@ -48,7 +68,8 @@ export default function RegisterPage() {
                 ...prev,
                 members: [...prev.members, {
                     ...currentMember,
-                    images: capturedImages
+                    images: capturedImages.map(img => img.serverFilename),
+                    previewImage: capturedImages[0].previewUrl // For local UI only
                 }]
             }));
             // Reset member form
@@ -65,7 +86,26 @@ export default function RegisterPage() {
     const submitFamily = async () => {
         try {
             setIsSubmitting(true);
-            await axios.post('/api/family/register', familyData);
+            
+            // Filter out previewImage to keep payload tiny
+            const payload = {
+                ...familyData,
+                members: familyData.members.map(m => {
+                    const { previewImage, ...rest } = m;
+                    return rest;
+                })
+            };
+            
+            // 1. Calculate payload size
+            const payloadString = JSON.stringify(payload);
+            const sizeInBytes = new Blob([payloadString]).size;
+            const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2);
+            
+            // 2. Log Content-Length details
+            console.log(`[Request Payload Size] ${sizeInBytes} bytes (~${sizeInMB} MB)`);
+            console.log(`[Base64 Images Used] No. Separated into /api/upload_image.`);
+
+            await axios.post('/api/family/register', payload);
             alert('Family Registered Successfully!');
             setStep(1);
             setFamilyData({
@@ -257,7 +297,7 @@ export default function RegisterPage() {
                                         <div className="flex space-x-3 overflow-x-auto py-2">
                                             {capturedImages.map((img, i) => (
                                                 <div key={i} className="relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 border-blue-500 group">
-                                                    <img src={img} alt={`capture-${i}`} className="w-full h-full object-cover" />
+                                                    <img src={img.previewUrl} alt={`capture-${i}`} className="w-full h-full object-cover" />
                                                     <button
                                                         onClick={() => removeImage(i)}
                                                         className="absolute top-1 right-1 bg-red-500/80 hover:bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -308,7 +348,7 @@ export default function RegisterPage() {
                                         familyData.members.map((m, i) => (
                                             <div key={i} className="flex items-start space-x-3 bg-white p-3.5 rounded-xl border border-zinc-200/70 shadow-sm hover:shadow-md transition-shadow">
                                                 <div className="relative">
-                                                    <img src={m.images[0]} className="w-12 h-12 rounded-lg object-cover border border-zinc-100" />
+                                                    <img src={m.previewImage} className="w-12 h-12 rounded-lg object-cover border border-zinc-100" />
                                                     <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white">
                                                         {m.images.length}
                                                     </span>

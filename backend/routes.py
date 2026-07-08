@@ -70,6 +70,19 @@ def refresh_face_cache():
     except Exception as e:
         logger.error(f"Failed to refresh face cache: {e}")
 
+@api_bp.route('/upload_image', methods=['POST'])
+def upload_image():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file:
+        filename = f"temp_{uuid.uuid4().hex}.jpg"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        return jsonify({"filename": filename}), 200
+
 @api_bp.route('/family/register', methods=['POST'])
 def register_family():
     data = request.json
@@ -113,9 +126,27 @@ def register_family():
                 raise ValueError(f"At least one image required for {member.get('name')}")
             
             valid_face_found = False
-            for idx, img_b64 in enumerate(images):
-                filename = f"{new_family.family_id}_{new_member.member_id}_{uuid.uuid4().hex}.jpg"
-                saved_filename = save_base64_image_permanent(img_b64, filename)
+            for idx, img_identifier in enumerate(images):
+                # If it's a pre-uploaded filename from /api/upload_image, it will start with temp_ or just be a filename.
+                # If it's still somehow base64 (legacy), we save it.
+                if img_identifier.startswith('data:image/') or len(img_identifier) > 500:
+                    filename = f"{new_family.family_id}_{new_member.member_id}_{uuid.uuid4().hex}.jpg"
+                    saved_filename = save_base64_image_permanent(img_identifier, filename)
+                else:
+                    # It's an already uploaded filename
+                    saved_filename = img_identifier
+                    
+                    # Rename temp file to permanent file format
+                    if saved_filename.startswith('temp_'):
+                        old_path = os.path.join(UPLOAD_FOLDER, saved_filename)
+                        new_filename = f"{new_family.family_id}_{new_member.member_id}_{saved_filename[5:]}"
+                        new_path = os.path.join(UPLOAD_FOLDER, new_filename)
+                        if os.path.exists(old_path):
+                            os.rename(old_path, new_path)
+                            saved_filename = new_filename
+                        else:
+                            logger.warning(f"Temp file {old_path} not found.")
+                            
                 saved_files.append(saved_filename)
                 
                 # Extract embedding using the full path on disk
