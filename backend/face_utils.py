@@ -4,8 +4,27 @@ import os
 import tempfile
 import numpy as np
 import gc
+import psutil
+
+# Globally load DeepFace
+from deepface import DeepFace
 
 logger = logging.getLogger(__name__)
+
+def log_memory(step_name):
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    # RSS (Resident Set Size) in MB
+    rss_mb = mem_info.rss / (1024 * 1024)
+    logger.info(f"MEMORY [{step_name}]: {rss_mb:.2f} MB")
+
+# Pre-load DeepFace model globally to avoid boot-time spikes and repeated loading
+logger.info("Initializing DeepFace globally...")
+try:
+    DeepFace.build_model("Facenet")
+    logger.info("DeepFace initialized successfully.")
+except Exception as e:
+    logger.error(f"Failed to pre-load DeepFace: {e}")
 
 # ============================================
 # IMAGE ENHANCEMENT
@@ -69,16 +88,15 @@ def extract_embedding(image_path: str):
     Extract face embedding using multiple fallback strategies.
     Passes file paths (not numpy arrays) to DeepFace for reliable detection.
     """
-    # Lazy-load DeepFace to prevent boot-time memory spikes and port binding timeouts
-    from deepface import DeepFace
-
     logger.info(f"Starting face extraction for: {image_path}")
+    log_memory("Before Image Decoding")
 
     enhanced_path = None
 
     try:
         # Validate image is readable
         img = cv2.imread(image_path)
+        log_memory("After Image Decoding")
 
         if img is None:
             logger.error(f"Failed to read image: {image_path}")
@@ -86,15 +104,17 @@ def extract_embedding(image_path: str):
 
         logger.info(f"Image loaded successfully. Shape: {img.shape}")
         
-        # Downscale image to max 800x800 to prevent OOM crashes on Render's 512MB RAM
-        max_dim = 800
+        # Downscale image to max 640x640 to prevent OOM crashes
+        max_dim = 640
         h, w = img.shape[:2]
         if h > max_dim or w > max_dim:
             scale = max_dim / max(h, w)
             img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
-            # Overwrite the original file with the downscaled version so DeepFace uses it
-            cv2.imwrite(image_path, img)
+            # Overwrite the original file with the downscaled version, using JPEG quality 75
+            cv2.imwrite(image_path, img, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
             logger.info(f"Image resized to prevent OOM. New Shape: {img.shape}")
+            
+        log_memory("After Image Resizing")
 
         # ============================================
         # STRATEGY 1 - OpenCV detector
@@ -102,6 +122,7 @@ def extract_embedding(image_path: str):
 
         try:
             logger.info("Trying OpenCV detector...")
+            log_memory("Before DeepFace.represent")
 
             gc.collect()
             objs = DeepFace.represent(
@@ -111,10 +132,17 @@ def extract_embedding(image_path: str):
                 enforce_detection=True,
                 align=True
             )
+            
+            log_memory("After DeepFace.represent")
 
             if objs and len(objs) > 0:
                 logger.info("Face detected using OpenCV.")
-                return objs[0]["embedding"]
+                embedding = objs[0]["embedding"]
+                # Explicit cleanup of objects
+                del objs
+                del img
+                gc.collect()
+                return embedding
 
         except Exception as e:
             logger.warning(f"OpenCV detection failed: {e}")
@@ -146,6 +174,14 @@ def extract_embedding(image_path: str):
             logger.warning(f"Enhanced detection failed: {e}")
 
         logger.error("All extraction strategies failed.")
+        
+        # Explicit cleanup
+        try:
+            del img
+            gc.collect()
+        except Exception:
+            pass
+            
         return None
 
     except Exception as e:
@@ -153,6 +189,7 @@ def extract_embedding(image_path: str):
         return None
 
     finally:
+        log_memory("End of Face Extraction")
         # Cleanup temp enhanced image
         if enhanced_path and os.path.exists(enhanced_path):
             try:

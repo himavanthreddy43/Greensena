@@ -5,11 +5,13 @@ import base64
 import uuid
 import tempfile
 import logging
+import traceback
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, jsonify, request, send_from_directory
 from sqlalchemy.exc import IntegrityError
 from models import db, Family, FamilyMember, FaceData, MonthlyRation, RationShop, FailedScanLog
 import face_utils
+from face_utils import log_memory
 
 logger = logging.getLogger(__name__)
 api_bp = Blueprint('api', __name__)
@@ -93,6 +95,7 @@ def register_family():
     saved_files = []
         
     try:
+        log_memory("Register Family Start")
         new_family = Family(
             head_of_family_name=data.get('head_name'),
             ration_card_number=data.get('ration_card_number'),
@@ -103,6 +106,8 @@ def register_family():
         )
         db.session.add(new_family)
         db.session.flush() # To get family_id
+        
+        log_memory("After Family Flush")
         
         for member in data.get('members', []):
             new_member = FamilyMember(
@@ -168,7 +173,9 @@ def register_family():
                 raise ValueError(f"No valid faces detected in any of the provided images for {member.get('name')}")
                 
         db.session.commit()
+        log_memory("After Database Commit")
         refresh_face_cache()
+        log_memory("Register Family Complete")
         logger.info(f"Family registered successfully with ID: {new_family.family_id}")
         return jsonify({"message": "Family registered successfully", "id": new_family.family_id}), 201
         
@@ -186,7 +193,9 @@ def register_family():
         db.session.rollback()
         _cleanup_saved_files(saved_files)
         logger.error(f"Unexpected error during registration: {e}", exc_info=True)
-        return jsonify({"error": f"Failed to register family: {str(e)}"}), 500
+        # Return HTTP 500 with the complete traceback
+        tb_str = traceback.format_exc()
+        return jsonify({"error": f"Failed to register family: {str(e)}", "traceback": tb_str}), 500
 
 def _cleanup_saved_files(filenames):
     """Remove orphaned image files from disk after a failed registration."""
