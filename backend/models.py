@@ -44,10 +44,23 @@ class FamilyMember(db.Model):
     age = db.Column(db.Integer)
     relationship = db.Column(db.String(50))
     is_default_member = db.Column(db.Boolean, default=False)
+    is_synced = db.Column(db.Boolean, default=False)
+    notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     faces = db.relationship('FaceData', backref='member_ref', lazy=True, cascade='all, delete-orphan')
+
+class PendingFace(db.Model):
+    __tablename__ = 'pending_faces'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    member_id = db.Column(db.Integer, db.ForeignKey('family_members.member_id', ondelete='CASCADE'), nullable=False)
+    family_id = db.Column(db.Integer, db.ForeignKey('families.family_id', ondelete='CASCADE'), nullable=False)
+    face_image_path = db.Column(db.String(255), nullable=False)
+    status = db.Column(db.String(20), default='pending') # pending, processing, completed, failed
+    error_message = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 class FaceData(db.Model):
     __tablename__ = 'face_data'
