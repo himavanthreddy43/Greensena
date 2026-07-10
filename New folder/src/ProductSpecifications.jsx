@@ -1,9 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './ProductSpecifications.css';
 import { translations } from './translations';
 
+const SpecAccordion = ({ title, icon, children, isOpen, onToggle }) => {
+  return (
+    <div className={`spec-table-wrapper ${isOpen ? 'open' : ''}`}>
+      <div 
+        className="spec-table-header" 
+        onClick={onToggle} 
+        style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div className="spec-table-icon">{icon}</div>
+          <span>{title}</span>
+        </div>
+        <div style={{ fontSize: '1.2rem', paddingRight: '10px' }}>{isOpen ? '▲' : '▼'}</div>
+      </div>
+      {isOpen && (
+        <div className="spec-table-content" style={{ animation: 'fadeIn 0.3s' }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ProductSpecifications = ({ lang = 'en' }) => {
   const t = translations[lang];
+  const [openSection, setOpenSection] = useState(null);
+
+  const toggleSection = (sectionName) => {
+    setOpenSection(openSection === sectionName ? null : sectionName);
+  };
 
   return (
     <div className="specs-wrapper">
@@ -20,11 +48,7 @@ const ProductSpecifications = ({ lang = 'en' }) => {
         <div className="specs-col">
           
           {/* U-CUT SHAPE CARRY BAG */}
-          <div className="spec-table-wrapper">
-            <div className="spec-table-header">
-              <div className="spec-table-icon">🛍️</div>
-              <span>{t.specUcut}</span>
-            </div>
+          <SpecAccordion title={t.specUcut} icon="🛍️" isOpen={openSection === 'ucut'} onToggle={() => toggleSection('ucut')}>
             <table className="spec-table">
               <thead>
                 <tr>
@@ -45,14 +69,10 @@ const ProductSpecifications = ({ lang = 'en' }) => {
                 <tr><td>24 × 30</td><td>50</td><td>16</td><td>15 Kg</td></tr>
               </tbody>
             </table>
-          </div>
+          </SpecAccordion>
 
           {/* POUCHES */}
-          <div className="spec-table-wrapper">
-            <div className="spec-table-header">
-              <div className="spec-table-icon">✉️</div>
-              <span>{t.specPouches}</span>
-            </div>
+          <SpecAccordion title={t.specPouches} icon="✉️" isOpen={openSection === 'pouches'} onToggle={() => toggleSection('pouches')}>
             <table className="spec-table">
               <thead>
                 <tr>
@@ -69,14 +89,10 @@ const ProductSpecifications = ({ lang = 'en' }) => {
                 <tr><td>7 × 10</td><td>60</td><td>135</td><td>300 Gms</td></tr>
               </tbody>
             </table>
-          </div>
+          </SpecAccordion>
 
           {/* GROCERY BAGS */}
-          <div className="spec-table-wrapper">
-            <div className="spec-table-header">
-              <div className="spec-table-icon">🛒</div>
-              <span>{t.specGrocery}</span>
-            </div>
+          <SpecAccordion title={t.specGrocery} icon="🛒" isOpen={openSection === 'grocery'} onToggle={() => toggleSection('grocery')}>
             <table className="spec-table">
               <thead>
                 <tr>
@@ -95,7 +111,7 @@ const ProductSpecifications = ({ lang = 'en' }) => {
                 <tr><td>16 × 25</td><td>55</td><td>27</td><td>10 Kg</td></tr>
               </tbody>
             </table>
-          </div>
+          </SpecAccordion>
 
         </div>
 
@@ -103,11 +119,7 @@ const ProductSpecifications = ({ lang = 'en' }) => {
         <div className="specs-col">
           
           {/* D-CUT SHAPE CARRY BAG */}
-          <div className="spec-table-wrapper">
-            <div className="spec-table-header">
-              <div className="spec-table-icon">🛍️</div>
-              <span>{t.specDcut}</span>
-            </div>
+          <SpecAccordion title={t.specDcut} icon="🛍️" isOpen={openSection === 'dcut'} onToggle={() => toggleSection('dcut')}>
             <table className="spec-table">
               <thead>
                 <tr>
@@ -126,14 +138,10 @@ const ProductSpecifications = ({ lang = 'en' }) => {
                 <tr><td>18 × 24</td><td>75</td><td>19</td><td>-</td></tr>
               </tbody>
             </table>
-          </div>
+          </SpecAccordion>
 
           {/* BUTTER PAPER */}
-          <div className="spec-table-wrapper">
-            <div className="spec-table-header">
-              <div className="spec-table-icon">📜</div>
-              <span>{t.specButter}</span>
-            </div>
+          <SpecAccordion title={t.specButter} icon="📜" isOpen={openSection === 'butter'} onToggle={() => toggleSection('butter')}>
             <table className="spec-table">
               <thead>
                 <tr>
@@ -150,14 +158,10 @@ const ProductSpecifications = ({ lang = 'en' }) => {
                 <tr><td>13 × 13</td><td>30</td><td>250</td></tr>
               </tbody>
             </table>
-          </div>
+          </SpecAccordion>
 
           {/* GARBAGE BAGS */}
-          <div className="spec-table-wrapper">
-            <div className="spec-table-header">
-              <div className="spec-table-icon">🗑️</div>
-              <span>{t.specGarbage}</span>
-            </div>
+          <SpecAccordion title={t.specGarbage} icon="🗑️" isOpen={openSection === 'garbage'} onToggle={() => toggleSection('garbage')}>
             <table className="spec-table">
               <thead>
                 <tr>
@@ -174,14 +178,10 @@ const ProductSpecifications = ({ lang = 'en' }) => {
                 <tr><td>30 × 50</td><td>55</td><td>7</td><td>12 Kg</td></tr>
               </tbody>
             </table>
-          </div>
+          </SpecAccordion>
 
           {/* MEDICAL WASTE BAGS */}
-          <div className="spec-table-wrapper">
-            <div className="spec-table-header">
-              <div className="spec-table-icon">🛢️</div>
-              <span>{t.specMedical}</span>
-            </div>
+          <SpecAccordion title={t.specMedical} icon="🛢️" isOpen={openSection === 'medical'} onToggle={() => toggleSection('medical')}>
             <table className="spec-table">
               <thead>
                 <tr>
@@ -198,7 +198,7 @@ const ProductSpecifications = ({ lang = 'en' }) => {
                 <tr><td>30 × 40</td><td>55</td><td>9</td><td>13 Kg</td></tr>
               </tbody>
             </table>
-          </div>
+          </SpecAccordion>
 
         </div>
       </div>
