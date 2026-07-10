@@ -3,12 +3,31 @@ export const translations = {
     navAbout: "About Us",
     navProducts: "Products",
     navWhyUs: "Why Choose Us",
-    navContact: "Contact",
+    navContact: "Contact Us",
     
+    // Mobile Menu Items
+    menuHome: "Home",
+    menuMission: "Green Sena Mission",
+    menuDealer: "Become a Dealer",
+    menuBulk: "Bulk Orders",
+    menuContact: "Contact",
+    menuWhatsApp: "WhatsApp",
+    
+    // Mobile Hero
     heroTitle: "Eco-Friendly Solutions for a Greener Tomorrow",
-    heroSub: "Protect Nature. Choose Compostable Products.",
-    heroBtn: "Explore Our Products",
-
+    heroSubShort: "Protect Nature. Choose Compostable Products.",
+    heroContactPrice: "Price: On Request",
+    heroContactBest: "Contact for\nBest Pricing",
+    heroSub: "At Green Sena Eco Mission, we are committed to delivering reliable, eco-friendly products that contribute to a plastic-free environment. Together, we can build a sustainable future—one eco-friendly choice at a time.",
+    heroQuote: "🌿 Save Nature • Save Future 🌿",
+    heroChatWa: "Chat on WhatsApp",
+    heroCallNow: "Call Now",
+    
+    // Contact Cards
+    salesTitle: "Sales",
+    supportTitle: "Support",
+    
+    // About
     aboutTitle: "About Us",
     aboutMissionTitle: "Green Sena Eco Mission",
     aboutP1: "Green Sena Eco Mission is an eco-conscious initiative dedicated to promoting sustainable living by providing high-quality compostable, biodegradable, and environmentally friendly products. Our mission is to reduce plastic pollution and encourage individuals, businesses, hospitals, and industries to adopt eco-friendly alternatives.",
@@ -24,9 +43,9 @@ export const translations = {
     val4: "Customer Satisfaction",
     val5: "Green Innovation",
 
+    // Products
     prodTitle: "Our Products",
     prodDesc: "We are committed to promoting eco-friendly and sustainable alternatives by providing high-quality compostable and biodegradable products for homes, businesses, hospitals, and industries.",
-    
     prod1Title: "U-Cut Shaped Bags",
     prod1Desc: "Eco-friendly compostable U-Cut shaped carry bags.",
     prod2Title: "D-Cut Shaped Bags",
@@ -37,10 +56,15 @@ export const translations = {
     prod4Desc: "All colours available. High-quality flat compostable garbage bags.",
     prod5Title: "Garbage Bags (Roll / Bin)",
     prod5Desc: "Heavy duty compostable garbage bags for homes & industries.",
+    prod6Title: "Pouches",
+    prod6Desc: "Compostable pouches for everyday packaging needs.",
+    prod7Title: "Grocery Bags",
+    prod7Desc: "Durable and eco-friendly compostable grocery bags.",
     
     allBagsTitle: "All Kinds of Covers and Bags Available",
     allBagsDesc: "We manufacture and supply a wide variety of sizes, colours, and shapes to meet your needs.",
 
+    // Specs
     specTitle: "PRODUCT SPECIFICATIONS",
     specUcut: "U-CUT SHAPE CARRY BAG",
     specPouches: "POUCHES",
@@ -49,12 +73,12 @@ export const translations = {
     specButter: "BUTTER PAPER",
     specGarbage: "GARBAGE BAGS",
     specMedical: "MEDICAL WASTE BAGS",
-    
     colSize: "Size (inch)",
     colMicrons: "Microns",
     colPcs: "No.of Pcs",
     colLoad: "Load Capacity",
     
+    // Highlights
     highTitle: "OUR HIGHLIGHTS",
     h100Bio: "100%\nBiodegradable",
     hEco: "Eco\nFriendly",
@@ -63,12 +87,23 @@ export const translations = {
     hBulk: "Bulk Supply\nAvailable",
     hEarth: "Save Earth\nSave Future",
 
+    // Why Choose Us
     whyUsTitle: "Why Choose Green Sena?",
+    why100Comp: "100%\nCompostable",
+    whyMadeIn: "Made in\nIndia",
+    whyEco: "Eco\nFriendly",
+    whyFast: "Fast\nDelivery",
     why1: "Eco-Friendly Products",
     why2: "Quality Assured",
     why3: "Competitive Pricing",
     why4: "Bulk Orders Accepted",
     why5: "Customer Support",
+
+    // Dealer Section
+    dealerTitle: "Become a Green Sena Dealer",
+    dealerInv: "Investment\nfrom ₹10,000",
+    dealerMark: "Marketing\nSupport",
+    dealerDel: "Fast Delivery\nAcross Telangana",
 
     ctaPrice: "Price: On Request / Contact for Best Pricing",
     ctaDesc: "At Green Sena Eco Mission, we are committed to delivering reliable, eco-friendly products that contribute to a plastic-free environment. Together, we can build a sustainable future—one eco-friendly choice at a time.",
@@ -78,18 +113,33 @@ export const translations = {
 
     footPrivacy: "Privacy Policy",
     footTerms: "Terms and Conditions",
-    footCopy: "© Copyright Green Sena Eco Mission. All rights reserved."
+    footCopy: "© 2026 Green Sena Eco Mission. All Rights Reserved."
   },
   te: {
     navAbout: "మా గురించి",
     navProducts: "ఉత్పత్తులు",
     navWhyUs: "మమ్మల్ని ఎందుకు ఎంచుకోవాలి",
-    navContact: "సంప్రదించండి",
+    navContact: "Contact Us",
+    
+    menuHome: "హోమ్",
+    menuMission: "గ్రీన్ సేన మిషన్",
+    menuDealer: "డీలర్ అవ్వండి",
+    menuBulk: "బల్క్ ఆర్డర్స్",
+    menuContact: "సంప్రదించండి",
+    menuWhatsApp: "వాట్సాప్",
     
     heroTitle: "హరిత భవిష్యత్తు కోసం పర్యావరణ అనుకూల పరిష్కారాలు",
-    heroSub: "ప్రకృతిని రక్షించండి. కంపోస్టబుల్ ఉత్పత్తులను ఎంచుకోండి.",
-    heroBtn: "మా ఉత్పత్తులను అన్వేషించండి",
-
+    heroSubShort: "ప్రకృతిని రక్షించండి. కంపోస్టబుల్ ఉత్పత్తులను ఎంచుకోండి.",
+    heroContactPrice: "ధర: అభ్యర్థనపై",
+    heroContactBest: "ఉత్తమ ధర కోసం\nసంప్రదించండి",
+    heroSub: "గ్రీన్ సేన ఎకో మిషన్‌లో, ప్లాస్టిక్ రహిత పర్యావరణానికి దోహదపడే నమ్మకమైన, పర్యావరణ అనుకూల ఉత్పత్తులను పంపిణీ చేయడానికి మేము కట్టుబడి ఉన్నాము. ఒక పర్యావరణ అనుకూల ఎంపికతో మనం స్థిరమైన భవిష్యత్తును నిర్మించగలం.",
+    heroQuote: "🌿 ప్రకృతిని రక్షించండి • భవిష్యత్తును రక్షించండి 🌿",
+    heroChatWa: "వాట్సాప్‌లో చాట్ చేయండి",
+    heroCallNow: "ఇప్పుడే కాల్ చేయండి",
+    
+    salesTitle: "సేల్స్",
+    supportTitle: "సపోర్ట్",
+    
     aboutTitle: "మా గురించి",
     aboutMissionTitle: "గ్రీన్ సేన ఎకో మిషన్",
     aboutP1: "గ్రీన్ సేన ఎకో మిషన్ అనేది పర్యావరణ అనుకూలమైన కంపోస్టబుల్, బయోడిగ్రేడబుల్ ఉత్పత్తులను అందించడం ద్వారా స్థిరమైన జీవనశైలిని ప్రోత్సహించడానికి అంకితమైన ఒక పర్యావరణ చైతన్య కార్యక్రమం. ప్లాస్టిక్ కాలుష్యాన్ని తగ్గించడం మరియు పర్యావరణ అనుకూల ప్రత్యామ్నాయాలను అవలంబించేలా వ్యక్తులు, వ్యాపారాలు, ఆసుపత్రులు మరియు పరిశ్రమలను ప్రోత్సహించడమే మా లక్ష్యం.",
@@ -103,11 +153,10 @@ export const translations = {
     val2: "స్థిరత్వం",
     val3: "నమ్మకం & నాణ్యత",
     val4: "కస్టమర్ సంతృప్తి",
-    val5: "ఆకుపచ్చ ఆవిష్కరణ (Green Innovation)",
+    val5: "ఆకుపచ్చ ఆవిష్కరణ",
 
     prodTitle: "మా ఉత్పత్తులు",
     prodDesc: "గృహాలు, వ్యాపారాలు, ఆసుపత్రులు మరియు పరిశ్రమల కోసం అధిక-నాణ్యత కంపోస్టబుల్ మరియు బయోడిగ్రేడబుల్ ఉత్పత్తులను అందించడం ద్వారా పర్యావరణ అనుకూలమైన మరియు స్థిరమైన ప్రత్యామ్నాయాలను ప్రోత్సహించడానికి మేము కట్టుబడి ఉన్నాము.",
-    
     prod1Title: "U-కట్ ఆకారపు సంచులు",
     prod1Desc: "పర్యావరణ అనుకూల కంపోస్టబుల్ U-కట్ ఆకారపు క్యారీ బ్యాగ్‌లు.",
     prod2Title: "D-కట్ ఆకారపు సంచులు",
@@ -118,6 +167,10 @@ export const translations = {
     prod4Desc: "అన్ని రంగులలో అందుబాటులో ఉన్నాయి. అధిక నాణ్యత గల ఫ్లాట్ కంపోస్టబుల్ చెత్త సంచులు.",
     prod5Title: "చెత్త సంచులు (రోల్ / బిన్)",
     prod5Desc: "గృహాలు & పరిశ్రమల కోసం హెవీ డ్యూటీ కంపోస్టబుల్ గార్బేజ్ బ్యాగ్‌లు.",
+    prod6Title: "పౌచెస్ (Pouches)",
+    prod6Desc: "రోజువారీ ప్యాకేజింగ్ అవసరాల కోసం కంపోస్టబుల్ పౌచెస్.",
+    prod7Title: "కిరాణా సంచులు (Grocery Bags)",
+    prod7Desc: "మన్నికైన మరియు పర్యావరణ అనుకూల కంపోస్టబుల్ కిరాణా సంచులు.",
     
     allBagsTitle: "అన్ని రకాల కవర్లు మరియు బ్యాగులు అందుబాటులో ఉన్నాయి",
     allBagsDesc: "మీ అవసరాలకు తగినట్లుగా మేము అనేక రకాల పరిమాణాలు, రంగులు మరియు ఆకృతులను తయారు చేసి సరఫరా చేస్తాము.",
@@ -130,7 +183,6 @@ export const translations = {
     specButter: "బట్టర్ పేపర్ (BUTTER PAPER)",
     specGarbage: "చెత్త సంచులు (GARBAGE BAGS)",
     specMedical: "మెడికల్ వేస్ట్ బ్యాగ్స్",
-    
     colSize: "పరిమాణం (inch)",
     colMicrons: "మైక్రాన్లు",
     colPcs: "Pcs సంఖ్య",
@@ -145,11 +197,20 @@ export const translations = {
     hEarth: "భూమిని రక్షించండి\nభవిష్యత్తును రక్షించండి",
 
     whyUsTitle: "గ్రీన్ సేనను ఎందుకు ఎంచుకోవాలి?",
+    why100Comp: "100%\nకంపోస్టబుల్",
+    whyMadeIn: "భారతదేశంలో\nతయారైనవి",
+    whyEco: "పర్యావరణ\nఅనుకూలం",
+    whyFast: "ఫాస్ట్\nడెలివరీ",
     why1: "పర్యావరణ అనుకూల ఉత్పత్తులు",
     why2: "నాణ్యత హామీ",
     why3: "పోటీ ధరలు",
     why4: "బల్క్ ఆర్డర్లు అంగీకరించబడతాయి",
     why5: "కస్టమర్ సపోర్ట్",
+
+    dealerTitle: "గ్రీన్ సేన డీలర్ అవ్వండి",
+    dealerInv: "₹10,000 నుండి\nపెట్టుబడి",
+    dealerMark: "మార్కెటింగ్\nమద్దతు",
+    dealerDel: "తెలంగాణ అంతటా\nఫాస్ట్ డెలివరీ",
 
     ctaPrice: "ధర: అభ్యర్థనపై / ఉత్తమ ధర కోసం సంప్రదించండి",
     ctaDesc: "గ్రీన్ సేన ఎకో మిషన్‌లో, ప్లాస్టిక్ రహిత పర్యావరణానికి దోహదపడే నమ్మకమైన, పర్యావరణ అనుకూల ఉత్పత్తులను పంపిణీ చేయడానికి మేము కట్టుబడి ఉన్నాము. ఒక పర్యావరణ అనుకూల ఎంపికతో మనం స్థిరమైన భవిష్యత్తును నిర్మించగలం.",
@@ -159,18 +220,33 @@ export const translations = {
 
     footPrivacy: "గోప్యతా విధానం",
     footTerms: "నిబంధనలు మరియు షరతులు",
-    footCopy: "© కాపీరైట్ గ్రీన్ సేన ఎకో మిషన్. సర్వ హక్కులు ప్రత్యేకించబడినవి."
+    footCopy: "© 2026 Green Sena Eco Mission. All Rights Reserved."
   },
   hi: {
     navAbout: "हमारे बारे में",
     navProducts: "उत्पाद",
     navWhyUs: "हमें क्यों चुनें",
-    navContact: "संपर्क करें",
+    navContact: "Contact Us",
+    
+    menuHome: "होम",
+    menuMission: "ग्रीन सेना मिशन",
+    menuDealer: "डीलर बनें",
+    menuBulk: "थोक ऑर्डर",
+    menuContact: "संपर्क करें",
+    menuWhatsApp: "व्हाट्सएप",
     
     heroTitle: "हरे-भरे कल के लिए पर्यावरण अनुकूल समाधान",
-    heroSub: "प्रकृति की रक्षा करें। कम्पोस्टेबल उत्पाद चुनें।",
-    heroBtn: "हमारे उत्पादों का अन्वेषण करें",
-
+    heroSubShort: "प्रकृति की रक्षा करें। कम्पोस्टेबल उत्पाद चुनें।",
+    heroContactPrice: "मूल्य: अनुरोध पर",
+    heroContactBest: "सर्वोत्तम मूल्य के लिए\nसंपर्क करें",
+    heroSub: "ग्रीन सेना इको मिशन में, हम विश्वसनीय, पर्यावरण-अनुकूल उत्पाद देने के लिए प्रतिबद्ध हैं जो प्लास्टिक मुक्त पर्यावरण में योगदान करते हैं। साथ मिलकर, हम एक स्थायी भविष्य का निर्माण कर सकते हैं।",
+    heroQuote: "🌿 प्रकृति बचाओ • भविष्य बचाओ 🌿",
+    heroChatWa: "व्हाट्सएप पर चैट करें",
+    heroCallNow: "अभी कॉल करें",
+    
+    salesTitle: "बिक्री",
+    supportTitle: "सहयोग",
+    
     aboutTitle: "हमारे बारे में",
     aboutMissionTitle: "ग्रीन सेना इको मिशन",
     aboutP1: "ग्रीन सेना इको मिशन एक पर्यावरण-सचेत पहल है जो उच्च गुणवत्ता वाले कम्पोस्टेबल, बायोडिग्रेडेबल और पर्यावरण के अनुकूल उत्पाद प्रदान करके टिकाऊ जीवन को बढ़ावा देने के लिए समर्पित है। हमारा मिशन प्लास्टिक प्रदूषण को कम करना और व्यक्तियों, व्यवसायों, अस्पतालों और उद्योगों को पर्यावरण के अनुकूल विकल्प अपनाने के लिए प्रोत्साहित करना है।",
@@ -188,7 +264,6 @@ export const translations = {
 
     prodTitle: "हमारे उत्पाद",
     prodDesc: "हम घरों, व्यवसायों, अस्पतालों और उद्योगों के लिए उच्च गुणवत्ता वाले कम्पोस्टेबल और बायोडिग्रेडेबल उत्पाद प्रदान करके पर्यावरण के अनुकूल और टिकाऊ विकल्पों को बढ़ावा देने के लिए प्रतिबद्ध हैं।",
-    
     prod1Title: "U-कट आकार के बैग",
     prod1Desc: "पर्यावरण के अनुकूल कम्पोस्टेबल यू-कट कैरी बैग।",
     prod2Title: "D-कट आकार के बैग",
@@ -199,6 +274,10 @@ export const translations = {
     prod4Desc: "सभी रंग उपलब्ध हैं। उच्च गुणवत्ता वाले फ्लैट कम्पोस्टेबल कचरा बैग।",
     prod5Title: "कचरा बैग (रोल/बिन)",
     prod5Desc: "घरों और उद्योगों के लिए भारी शुल्क वाले कम्पोस्टेबल कचरा बैग।",
+    prod6Title: "पाउच (Pouches)",
+    prod6Desc: "रोजमर्रा की पैकेजिंग जरूरतों के लिए कम्पोस्टेबल पाउच।",
+    prod7Title: "किराने के बैग (Grocery Bags)",
+    prod7Desc: "टिकाऊ और पर्यावरण के अनुकूल कम्पोस्टेबल किराने के बैग।",
     
     allBagsTitle: "सभी प्रकार के कवर और बैग उपलब्ध हैं",
     allBagsDesc: "हम आपकी आवश्यकताओं को पूरा करने के लिए विभिन्न आकारों, रंगों और आकृतियों का निर्माण और आपूर्ति करते हैं।",
@@ -211,7 +290,6 @@ export const translations = {
     specButter: "बटर पेपर",
     specGarbage: "कचरा बैग",
     specMedical: "चिकित्सा अपशिष्ट बैग",
-    
     colSize: "आकार (inch)",
     colMicrons: "माइक्रोन",
     colPcs: "टुकड़ों की संख्या",
@@ -226,11 +304,20 @@ export const translations = {
     hEarth: "पृथ्वी बचाओ\nभविष्य बचाओ",
 
     whyUsTitle: "ग्रीन सेना को क्यों चुनें?",
+    why100Comp: "100%\nकम्पोस्टेबल",
+    whyMadeIn: "भारत में\nनिर्मित",
+    whyEco: "पर्यावरण\nके अनुकूल",
+    whyFast: "तेज़\nडिलीवरी",
     why1: "पर्यावरण के अनुकूल उत्पाद",
     why2: "गुणवत्ता का आश्वासन",
     why3: "प्रतिस्पर्धी मूल्य निर्धारण",
     why4: "थोक आदेश स्वीकार किए जाते हैं",
     why5: "ग्राहक सहेयता",
+
+    dealerTitle: "ग्रीन सेना डीलर बनें",
+    dealerInv: "₹10,000 से\nनिवेश",
+    dealerMark: "मार्केटिंग\nसपोर्ट",
+    dealerDel: "तेलंगाना भर में\nतेज़ डिलीवरी",
 
     ctaPrice: "मूल्य: अनुरोध पर / सर्वोत्तम मूल्य के लिए संपर्क करें",
     ctaDesc: "ग्रीन सेना इको मिशन में, हम विश्वसनीय, पर्यावरण-अनुकूल उत्पाद देने के लिए प्रतिबद्ध हैं जो प्लास्टिक मुक्त पर्यावरण में योगदान करते हैं। साथ मिलकर, हम एक स्थायी भविष्य का निर्माण कर सकते हैं।",
@@ -240,6 +327,6 @@ export const translations = {
 
     footPrivacy: "गोपनीयता नीति",
     footTerms: "नियम और शर्तें",
-    footCopy: "© कॉपीराइट ग्रीन सेना इको मिशन. सर्वाधिकार सुरक्षित।"
+    footCopy: "© 2026 Green Sena Eco Mission. All Rights Reserved."
   }
 };
