@@ -112,3 +112,77 @@ def compare_embeddings(emb1, emb2, threshold: float = 0.50):
     except Exception as e:
         logger.error(f"Embedding comparison failed: {e}")
         return False, 1.0
+
+def extract_embedding(image_path: str):
+    """
+    Extract face embedding with lazy loading of DeepFace.
+    """
+    logger.info(f"Starting face extraction for: {image_path}")
+    log_memory("Before Image Decoding")
+
+    try:
+        img = cv2.imread(image_path)
+        log_memory("After Image Decoding")
+
+        if img is None:
+            raise ValueError(f"Failed to read image: {image_path}")
+
+        # Downscale image to max 640x640 to prevent OOM crashes
+        max_dim = 640
+        h, w = img.shape[:2]
+        if h > max_dim or w > max_dim:
+            scale = max_dim / max(h, w)
+            img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+            cv2.imwrite(image_path, img, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
+            logger.info(f"Image resized to prevent OOM. New Shape: {img.shape}")
+            
+        log_memory("After Image Resizing")
+        logger.info("Trying OpenCV detector...")
+        log_memory("Before DeepFace.represent")
+
+        # Lazy load DeepFace
+        from deepface import DeepFace
+
+        gc.collect()
+        objs = None
+        try:
+            objs = DeepFace.represent(
+                img_path=image_path,
+                model_name="Facenet",
+                detector_backend="opencv",
+                enforce_detection=True,
+                align=True
+            )
+        except Exception as e:
+            logger.warning(f"OpenCV enforce_detection failed: {e}. Trying enforce_detection=False...")
+            try:
+                objs = DeepFace.represent(
+                    img_path=image_path,
+                    model_name="Facenet",
+                    detector_backend="opencv",
+                    enforce_detection=False,
+                    align=True
+                )
+            except Exception as e2:
+                logger.error(f"Fallback detection failed: {e2}")
+        
+        log_memory("After DeepFace.represent")
+
+        if objs and len(objs) > 0:
+            logger.info("Face detected successfully.")
+            embedding = objs[0]["embedding"]
+            del objs
+            del img
+            gc.collect()
+            return embedding
+        else:
+            raise ValueError("No face found in image.")
+
+    except Exception as e:
+        logger.error(f"Extraction error: {e}")
+        try:
+            del img
+            gc.collect()
+        except Exception:
+            pass
+        return None

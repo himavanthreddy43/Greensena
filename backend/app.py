@@ -31,12 +31,12 @@ logger = logging.getLogger(__name__)
 
 def create_app():
     app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
-    # Allow CORS strictly for Vercel frontend on all routes to prevent header stripping on errors
+    # Allow CORS for Vercel frontend, Railway, and local development
     CORS(app, resources={r"/*": {
-        "origins": ["https://ration-authontication.vercel.app"],
+        "origins": "*",
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": "*",
-        "supports_credentials": True
+        "supports_credentials": False
     }})
     
     # Configure Database — uses Supabase PostgreSQL from .env, falls back to SQLite for local dev

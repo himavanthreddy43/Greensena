@@ -151,5 +151,7 @@ __pycache__/
 venv/
 new_venv/
 backend/instance/
+instance/
+*.db
 backend/uploads/*.jpg
 backend/uploads/*.png

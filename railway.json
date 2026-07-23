@@ -4,6 +4,6 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "echo 'Disabled Railway Deploy' && sleep infinity"
+    "startCommand": "python3 -m gunicorn --chdir backend app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
   }
 }

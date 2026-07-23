@@ -10,10 +10,8 @@ import logging
 import traceback
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, jsonify, request, send_from_directory, current_app
-from sqlalchemy.exc import IntegrityError
-from models import db, Family, FamilyMember, FaceData, MonthlyRation, RationShop, FailedScanLog, PendingFace
-import face_utils
-from face_utils import log_memory
+from sqlalchemy.exc import IntegrityError, OperationalError
+from models import db, Family, FamilyMember, FaceData, MonthlyRation, RationShop, FailedScanLog
 
 logger = logging.getLogger(__name__)
 api_bp = Blueprint('api', __name__)
@@ -59,6 +57,8 @@ def refresh_face_cache():
         new_cache = []
         for face in all_faces:
             try:
+                if not face.face_embedding_vector or face.face_embedding_vector in ["NO_FACE", "FAILED"]:
+                    continue
                 emb = json.loads(face.face_embedding_vector)
                 new_cache.append({
                     'face_id': face.face_id,
@@ -97,7 +97,7 @@ def register_family():
     saved_files = []
         
     try:
-        log_memory("Register Family Start")
+        logger.info("Registration started")
         new_family = Family(
             head_of_family_name=data.get('head_name'),
             ration_card_number=data.get('ration_card_number'),
@@ -108,8 +108,7 @@ def register_family():
         )
         db.session.add(new_family)
         db.session.flush() # To get family_id
-        
-        log_memory("After Family Flush")
+        logger.info("Family saved")
         
         images_to_process = []
         for member in data.get('members', []):
@@ -138,7 +137,7 @@ def register_family():
                 # If it's still somehow base64 (legacy), we save it.
                 if img_identifier.startswith('data:image/') or len(img_identifier) > 500:
                     filename = f"{new_family.family_id}_{new_member.member_id}_{uuid.uuid4().hex}.jpg"
-                    saved_filename = face_utils.save_base64_image_permanent(img_identifier, filename)
+                    saved_filename = save_base64_image_permanent(img_identifier, filename)
                 else:
                     # It's an already uploaded filename
                     saved_filename = img_identifier
@@ -156,19 +155,23 @@ def register_family():
                             
                 saved_files.append(saved_filename)
                 
-                # Insert into PendingFace queue for the background worker
-                pending_face = PendingFace(
+                # Save uploaded image directly to FaceData (AI processing removed from registration)
+                face_data = FaceData(
                     member_id=new_member.member_id,
                     family_id=new_family.family_id,
+                    face_embedding_vector=None,
                     face_image_path=saved_filename
                 )
-                db.session.add(pending_face)
+                db.session.add(face_data)
                 
+        logger.info("Members saved")
+        logger.info("Images saved")
         db.session.commit()
-        log_memory("After Database Commit")
+        logger.info("Database committed")
         
-        log_memory("Register Family Complete")
         logger.info(f"Family registered successfully with ID: {new_family.family_id}")
+        logger.info("Registration completed")
+        logger.info("No AI processing executed")
         return jsonify({"message": "Family registered successfully. Faces will be processed shortly.", "id": new_family.family_id}), 201
         
     except ValueError as ve:
@@ -181,11 +184,17 @@ def register_family():
         _cleanup_saved_files(saved_files)
         logger.warning(f"Database integrity error: {ie}")
         return jsonify({"error": "A family with this ration card number is already registered. Please use a different ration card number."}), 400
+    except OperationalError as oe:
+        db.session.rollback()
+        _cleanup_saved_files(saved_files)
+        logger.error(f"Database operational connection error: {oe}", exc_info=True)
+        return jsonify({
+            "error": "Database connection failed. If using Supabase, your database project may be PAUSED due to inactivity. Please log in to Supabase dashboard and click 'Restore Project', or check your DATABASE_URL environment variable."
+        }), 503
     except Exception as e:
         db.session.rollback()
         _cleanup_saved_files(saved_files)
         logger.error(f"Unexpected error during registration: {e}", exc_info=True)
-        # Return HTTP 500 with the complete traceback
         tb_str = traceback.format_exc()
         return jsonify({"error": f"Failed to register family: {str(e)}", "traceback": tb_str}), 500
 
@@ -199,8 +208,53 @@ def _cleanup_saved_files(filenames):
             except OSError:
                 pass
 
+def process_unprocessed_faces(family_id=None):
+    """Processes any faces that do not have an embedding yet."""
+    query = FaceData.query.filter(FaceData.face_embedding_vector == None)
+    if family_id:
+        query = query.filter_by(family_id=family_id)
+        
+    unprocessed = query.all()
+    processed_count = 0
+    if not unprocessed:
+        return 0
+        
+    for face in unprocessed:
+        full_path = os.path.join(UPLOAD_FOLDER, face.face_image_path)
+        if os.path.exists(full_path):
+            import face_utils
+            embedding = face_utils.extract_embedding(full_path)
+            if embedding is not None:
+                face.face_embedding_vector = json.dumps(embedding)
+                processed_count += 1
+            else:
+                logger.warning(f"Failed to extract embedding for face {face.face_id}")
+                face.face_embedding_vector = "NO_FACE"
+        else:
+            logger.warning(f"Image path does not exist for face {face.face_id}: {full_path}")
+            face.face_embedding_vector = "NO_FACE"
+                
+    db.session.commit()
+    refresh_face_cache()
+        
+    return processed_count
+
+@api_bp.route('/process_faces/<int:family_id>', methods=['POST'])
+def process_faces_endpoint(family_id):
+    try:
+        count = process_unprocessed_faces(family_id)
+        return jsonify({"success": True, "processed": count}), 200
+    except Exception as e:
+        logger.error(f"Failed to process faces for family {family_id}: {e}", exc_info=True)
+        return jsonify({"error": "Failed to process faces"}), 500
+
 @api_bp.route('/recognize', methods=['POST'])
 def recognize():
+    # Process any pending faces globally before recognizing
+    try:
+        process_unprocessed_faces()
+    except Exception as e:
+        logger.error(f"Error processing pending faces before recognition: {e}")
     data = request.json
     if not data:
         return jsonify({"error": "Invalid request payload"}), 400
@@ -211,6 +265,7 @@ def recognize():
         
     temp_path = save_base64_image_temp(base64_img)
     try:
+        import face_utils
         scanned_embedding = face_utils.extract_embedding(temp_path)
         if scanned_embedding is None:
             import shutil
@@ -687,27 +742,17 @@ def add_family_member(family_id):
         if not images:
             raise ValueError(f"At least one image required for {new_member.member_name}")
             
-        valid_face_found = False
         for idx, img_b64 in enumerate(images):
             filename = f"{family.family_id}_{new_member.member_id}_{uuid.uuid4().hex}.jpg"
             saved_filename = save_base64_image_permanent(img_b64, filename)
             
-            full_path = os.path.join(UPLOAD_FOLDER, saved_filename)
-            embedding = face_utils.extract_embedding(full_path)
-            if embedding is not None:
-                valid_face_found = True
-                face_data = FaceData(
-                    member_id=new_member.member_id,
-                    family_id=family.family_id,
-                    face_embedding_vector=json.dumps(embedding),
-                    face_image_path=saved_filename  # Store relative filename only
-                )
-                db.session.add(face_data)
-            else:
-                logger.warning(f"No face detected in image {idx+1} for member {new_member.member_name}")
-                
-        if not valid_face_found:
-            raise ValueError(f"No valid faces detected in any of the provided images for {new_member.member_name}")
+            face_data = FaceData(
+                member_id=new_member.member_id,
+                family_id=family.family_id,
+                face_embedding_vector=None,
+                face_image_path=saved_filename
+            )
+            db.session.add(face_data)
             
         family.family_members_count += 1
         db.session.commit()
@@ -748,19 +793,11 @@ def add_member_face(member_id):
         filename = f"{member.family_id}_{member.member_id}_{uuid.uuid4().hex[:8]}.jpg"
         
         saved_filename = save_base64_image_permanent(img_b64, filename)
-        full_path = os.path.join(UPLOAD_FOLDER, saved_filename)
-        
-        embedding = face_utils.extract_embedding(full_path)
-        if embedding is None:
-            if os.path.exists(full_path):
-                os.remove(full_path)
-            return jsonify({"error": "No face detected in the image"}), 400
-            
         face_data = FaceData(
             member_id=member.member_id,
             family_id=member.family_id,
-            face_embedding_vector=json.dumps(embedding),
-            face_image_path=saved_filename  # Store relative filename only
+            face_embedding_vector=None,
+            face_image_path=saved_filename
         )
         db.session.add(face_data)
         db.session.commit()

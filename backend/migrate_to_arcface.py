@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 # Import Dependencies
 # ============================================
 
-from deepface import DeepFace
 from app import create_app
 from models import db, FaceData
 
@@ -41,6 +40,7 @@ app = create_app()
 def migrate():
 
     with app.app_context():
+        from deepface import DeepFace
 
         faces = FaceData.query.all()
 
